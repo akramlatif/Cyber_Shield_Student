@@ -45,6 +45,3 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - TypeScript
 - Tailwind CSS v4
 
-## Built with Craft
-
-This project was created using [Craft](https://underwriter.dev) - the AI-powered vibecoding tool.
