@@ -38,6 +38,14 @@ yarn dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Screenshots
+
+Homepage and password checker view captured from the running app:
+
+![Cyber Shield homepage](public/screenshots/home.png)
+
+![Password strength checker](public/screenshots/password.png)
+
 ## Tech Stack
 
 - Next.js 16
