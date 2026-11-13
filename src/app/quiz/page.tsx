@@ -8,22 +8,39 @@ export default function QuizPage() {
     const [questions, setQuestions] = useState<any[]>([]);
     const [answers, setAnswers] = useState<Record<string, number>>({});
     const [result, setResult] = useState<any>(null);
+    const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
         fetch('/api/quiz/questions?limit=5')
-            .then(res => res.json())
-            .then(data => {
+            .then(async res => {
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.error || 'Failed to load questions');
+                }
                 setQuestions(data.questions || []);
-                setLoading(false);
-            });
+                setError(null);
+            })
+            .catch(() => {
+                setError('Could not load quiz questions. The database (MONGODB_URI) may not be configured.');
+            })
+            .finally(() => setLoading(false));
     }, []);
 
     const submitQuiz = async () => {
-        setLoading(true);
+        // Nothing answered yet - do not send an empty answers array (API rejects it with 400)
+        if (Object.keys(answers).length === 0) {
+            setError('Please answer at least one question before submitting.');
+            return;
+        }
+
+        setSubmitting(true);
+        setError(null);
+
         const answersPayload = Object.keys(answers).map(qId => ({
             questionId: qId,
-            selectedIndex: answers[qId]
+            selectedIndex: answers[qId],
         }));
 
         try {
@@ -33,11 +50,16 @@ export default function QuizPage() {
                 body: JSON.stringify({ answers: answersPayload }),
             });
             const data = await res.json();
-            setResult(data);
+            if (!res.ok) {
+                setError(data.error || 'Failed to submit quiz. Please try again.');
+            } else {
+                setResult(data);
+            }
         } catch (err) {
             console.error(err);
+            setError('Failed to submit quiz. Please check your connection and try again.');
         }
-        setLoading(false);
+        setSubmitting(false);
     };
 
     return (
@@ -48,7 +70,17 @@ export default function QuizPage() {
                 </Link>
                 <h1 className="text-3xl font-bold text-gray-900 mb-8">Security Quiz</h1>
 
-                {loading && !result && <p>Loading quiz...</p>}
+                {loading && <p>Loading quiz...</p>}
+
+                {!loading && error && (
+                    <div className="border border-red-200 bg-red-50 text-red-700 rounded p-4 mb-6">
+                        {error}
+                    </div>
+                )}
+
+                {!loading && !result && questions.length === 0 && !error && (
+                    <p className="text-gray-500">No quiz questions are available right now.</p>
+                )}
 
                 {!loading && !result && questions.length > 0 && (
                     <div className="space-y-8">
@@ -73,7 +105,7 @@ export default function QuizPage() {
                             </div>
                         ))}
                         <Button onClick={submitQuiz} className="w-full py-4 text-lg">
-                            Submit Answers
+                            {submitting ? 'Submitting...' : 'Submit Answers'}
                         </Button>
                     </div>
                 )}
