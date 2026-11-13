@@ -3,7 +3,7 @@ import Button from '@/components/ui/Button';
 
 const Pricing = () => {
   return (
-    <section className="py-16 bg-gray-50">
+    <section id="pricing" className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Pricing</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -16,7 +16,7 @@ const Pricing = () => {
               <li className="mb-2">✓ Password Strength Checker</li>
               <li>✓ Security Tips</li>
             </ul>
-            <Button href="#register" className="w-full">Get Started</Button>
+            <Button href="/password" className="w-full">Get Started</Button>
           </div>
 
           {/* Pricing Tier 2 */}
@@ -31,7 +31,7 @@ const Pricing = () => {
               <li className="mb-2">✓ Data Breach Alert</li>
               <li>✓ Quiz System</li>
             </ul>
-            <Button href="#register" className="w-full">Get Premium</Button>
+            <Button href="/phishing" className="w-full">Get Premium</Button>
           </div>
 
           {/* Pricing Tier 3 */}
@@ -44,7 +44,7 @@ const Pricing = () => {
               <li className="mb-2">✓ Priority Support</li>
               <li>✓ Personalized Security Recommendations</li>
             </ul>
-            <Button href="#register" className="w-full">Get Ultimate</Button>
+            <Button href="/quiz" className="w-full">Get Ultimate</Button>
           </div>
         </div>
       </div>
