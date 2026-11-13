@@ -6,18 +6,22 @@ import Link from 'next/link';
 export default function TipsPage() {
     const [tips, setTips] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         fetch('/api/tips?limit=20')
-            .then(res => res.json())
-            .then(data => {
+            .then(async res => {
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.error || 'Failed to load tips');
+                }
                 setTips(data.tips || []);
-                setLoading(false);
+                setError(null);
             })
-            .catch(err => {
-                console.error(err);
-                setLoading(false);
-            });
+            .catch(() => {
+                setError('Could not load security tips. Please try again.');
+            })
+            .finally(() => setLoading(false));
     }, []);
 
     return (
@@ -28,9 +32,15 @@ export default function TipsPage() {
                 </Link>
                 <h1 className="text-3xl font-bold text-gray-900 mb-8">Security Tips</h1>
 
-                {loading ? (
-                    <p className="text-gray-500">Loading tips...</p>
-                ) : (
+                {loading && <p className="text-gray-500">Loading tips...</p>}
+
+                {!loading && error && (
+                    <div className="border border-red-200 bg-red-50 text-red-700 rounded p-4">
+                        {error}
+                    </div>
+                )}
+
+                {!loading && !error && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {tips.map((tip: any) => (
                             <div key={tip.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition">
