@@ -3,7 +3,8 @@ import { z } from 'zod';
 import connectDB from '@/lib/db';
 import Quiz from '@/lib/models/Quiz';
 import QuizAttempt from '@/lib/models/QuizAttempt';
-import { withAuth, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { verifyToken } from '@/lib/jwt';
+import { AuthenticatedRequest } from '@/lib/middleware/auth';
 import mongoose from 'mongoose';
 
 const submitSchema = z.object({
@@ -17,7 +18,23 @@ const submitSchema = z.object({
         .min(1, 'At least one answer is required'),
 });
 
-export const POST = async (req: Request) => {
+/**
+ * Extracts the user from the Authorization header (optional).
+ * Quiz submission stays public (no login required), but when a valid token
+ * is present the attempt is saved against the real user instead of a dummy ID.
+ */
+function getOptionalUserId(req: AuthenticatedRequest): string | null {
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
+    try {
+        const payload = verifyToken(authHeader.slice(7));
+        return payload.userId;
+    } catch {
+        return null; // Invalid/expired token: grade anyway, just don't persist
+    }
+}
+
+export const POST = async (req: AuthenticatedRequest) => {
     try {
         const body = await req.json();
 
@@ -64,18 +81,23 @@ export const POST = async (req: Request) => {
         const total = gradedAnswers.length;
         const percentage = Math.round((score / total) * 100);
 
-        // Save attempt using a dummy user ID since we removed withAuth for frontend testing
-        await QuizAttempt.create({
-            userId: new mongoose.Types.ObjectId('000000000000000000000000'),
-            score,
-            total,
-            percentage,
-            answers: gradedAnswers.map(a => ({
-                questionId: a.questionId,
-                selectedIndex: a.selectedIndex,
-                isCorrect: a.isCorrect,
-            })),
-        });
+        // Persist the attempt only when we know whose attempt it is.
+        // Previously every anonymous submission was saved against a dummy
+        // user ID, polluting the scores table and breaking /api/quiz/scores.
+        const userId = getOptionalUserId(req);
+        if (userId) {
+            await QuizAttempt.create({
+                userId: new mongoose.Types.ObjectId(userId),
+                score,
+                total,
+                percentage,
+                answers: gradedAnswers.map(a => ({
+                    questionId: a.questionId,
+                    selectedIndex: a.selectedIndex,
+                    isCorrect: a.isCorrect,
+                })),
+            });
+        }
 
         return NextResponse.json({
             score,
@@ -83,6 +105,7 @@ export const POST = async (req: Request) => {
             percentage,
             grade: percentage >= 90 ? 'A' : percentage >= 80 ? 'B' : percentage >= 70 ? 'C' : percentage >= 60 ? 'D' : 'F',
             answers: gradedAnswers,
+            saved: !!userId,
         });
     } catch (err) {
         console.error('[POST /api/quiz/submit]', err);

@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+// NOTE: This file mirrors next.config.ts. If you keep only one config file,
+// prefer next.config.ts and delete this file to avoid ambiguity.
 const nextConfig = {
   images: {
     remotePatterns: [

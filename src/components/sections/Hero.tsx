@@ -12,8 +12,8 @@ const Hero = () => {
           <div className="lg:w-1/2 mb-10 lg:mb-0">
             <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6" data-craft-id="hero-title">Cyber Shield: Your Security, Our Priority</h1>
             <p className="text-lg text-gray-700 mb-8">Protect yourself from online threats with our student security app. Password strength checker, phishing detector, security tips, and more!</p>
-            <Button href="#pricing" data-craft-id="hero-button">
-              Download Now
+            <Button href="#features" data-craft-id="hero-button">
+              Get Started Free
             </Button>
           </div>
           <div className="lg:w-1/2">
