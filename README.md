@@ -16,7 +16,7 @@ Quiz system
 
 ## Getting Started
 
-First, install the dependencies:
+First, install dependencies:
 
 ```bash
 npm install
